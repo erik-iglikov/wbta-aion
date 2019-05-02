@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">WBTempest</string>
+    <string name="lives">&#x2661;</string>
+    <string name="level">LEVEL</string>
+    <string name="high">HIGH</string>
+    <string name="global_high">GLOBAL</string>
+    <string name="fire">FIRE</string>
+    <string name="zap">ZAP</string>
+    <string name="zaprechg">SUPERZAPPER RECHARGE</string>
+    <string name="avoidspikes">AVOID SPIKES</string>
+    <string name="gameover">GAME OVER</string>
+    <string name="exit">TOUCH TO EXIT</string>
+    <string name="play">PLAY</string>
+    <string name="exitapp">EXIT</string>
+    <string name="lvlclrbonus">LEVEL CLEAR BONUS</string>
+    <string name="selectstartscr">SELECT START LEVEL</string>
+</resources>

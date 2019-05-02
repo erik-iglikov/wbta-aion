@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="true"
+        jar="/home/erik/nuco/wbta/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="3be78ebc2706b2e1fe2f12d5726887a92d6c183b">
+        <dex dex="/home/erik/nuco/wbta/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run_beeaae0cad5e8577cfebcf8b8c491e421b2f5343/classes.dex" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/home/erik/.android/build-cache/ca063e8a495502cae0830144f9a4ce7126f40a32/output/jars/libs/internal_impl-23.1.1.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.0"
+        sha1="a4de9c81ae239414e1ed0f86441b02abaf29bca9">
+        <dex dex="/home/erik/nuco/pokt/wbta-aion/app/build/intermediates/pre-dexed/debug/internal_impl-23.1.1_0da0eef0d3e70fbb231bdc0d1301447e408788f2.jar" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/erik/nuco/wbta/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="1a5ad2bfed544b78b02b2924108d6a84eb7a10ba">
+        <dex dex="/home/erik/nuco/wbta/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_bafb97064ea0b37255288975879dfc95fcfe7f5a/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/erik/.android/build-cache/1dd241cfd95afdb039f2c837eaeb27642ab79db1/output/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="5c5699834e9722f1c288fea2de82725d078ba127">
+        <dex dex="/home/erik/nuco/wbta/app/build/intermediates/transforms/dex/debug/folders/1000/10/classes_85ec523feb32cdd97526a4e6f60ebe30ce04cd7a/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/erik/Android/Sdk/extras/android/m2repository/com/android/support/support-annotations/23.1.1/support-annotations-23.1.1.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="8d680ba5a623724d1fb0e81c36a790f023a6cede">
+        <dex dex="/home/erik/nuco/wbta/app/build/intermediates/transforms/dex/debug/folders/1000/10/support-annotations-23.1.1_0fe495a1cc32bc70b47e00245b3ab36708231f60/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/erik/.android/build-cache/ca063e8a495502cae0830144f9a4ce7126f40a32/output/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="6cbc7773921fcfedbe55657578f0cbfe614778dc">
+        <dex dex="/home/erik/nuco/wbta/app/build/intermediates/transforms/dex/debug/folders/1000/10/classes_4c1b482f26bf92950c6410c9f7fc82ffd5bb769f/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/home/erik/.android/build-cache/ca063e8a495502cae0830144f9a4ce7126f40a32/output/jars/libs/internal_impl-23.1.1.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="a4de9c81ae239414e1ed0f86441b02abaf29bca9">
+        <dex dex="/home/erik/nuco/wbta/app/build/intermediates/transforms/dex/debug/folders/1000/10/internal_impl-23.1.1_0da0eef0d3e70fbb231bdc0d1301447e408788f2/classes.dex" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/home/erik/.android/build-cache/ca063e8a495502cae0830144f9a4ce7126f40a32/output/jars/classes.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.0"
+        sha1="6cbc7773921fcfedbe55657578f0cbfe614778dc">
+        <dex dex="/home/erik/nuco/pokt/wbta-aion/app/build/intermediates/pre-dexed/debug/classes_4c1b482f26bf92950c6410c9f7fc82ffd5bb769f.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/home/erik/Android/Sdk/extras/android/m2repository/com/android/support/support-annotations/23.1.1/support-annotations-23.1.1.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.0"
+        sha1="8d680ba5a623724d1fb0e81c36a790f023a6cede">
+        <dex dex="/home/erik/nuco/pokt/wbta-aion/app/build/intermediates/pre-dexed/debug/support-annotations-23.1.1_0fe495a1cc32bc70b47e00245b3ab36708231f60.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/home/erik/.android/build-cache/1dd241cfd95afdb039f2c837eaeb27642ab79db1/output/jars/classes.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.0"
+        sha1="5c5699834e9722f1c288fea2de82725d078ba127">
+        <dex dex="/home/erik/nuco/pokt/wbta-aion/app/build/intermediates/pre-dexed/debug/classes_85ec523feb32cdd97526a4e6f60ebe30ce04cd7a.jar" />
+    </item>
+
+</items>
