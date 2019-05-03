@@ -17,5 +17,6 @@ allprojects {
     repositories {
         jcenter()
         maven { url 'https://dl.bintray.com/pokt-network/pocket-android'}
+        google()
     }
 }
