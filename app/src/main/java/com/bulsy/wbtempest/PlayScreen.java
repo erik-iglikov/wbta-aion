@@ -20,6 +20,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import network.pocket.aion.PocketAion;
+
 /**
  * Represents the main screen of play for the game.
  *
@@ -104,7 +106,12 @@ public class PlayScreen extends Screen {
     private String lblLevelClearBonus;
     String lblSelectStartScr;
 
-    public PlayScreen(MainActivity act) {
+    final String TEST_ADDRESS = "0xa0b0e5190e3d52fdb282b4475c859188a221165804499216f6b8896e2fec1fdf";
+    final String MASTERY_SUBNETWORK = "32";
+
+
+
+    public <val> PlayScreen(MainActivity act) {
         this.act = act;
         exes = new ArrayList<Ex>();
         enemymissiles = new ArrayList<Missile>();
@@ -134,6 +141,30 @@ public class PlayScreen extends Screen {
         lblExit = act.getResources().getString(R.string.exit);
         lblLevelClearBonus = act.getResources().getString(R.string.lvlclrbonus);
         act.lblSelectStartScr = act.getResources().getString(R.string.selectstartscr);
+
+
+
+
+        // Aion connection
+
+
+        List<String> netIds = new ArrayList<>();
+        netIds.add(PocketAion.Networks.MASTERY.getNetID());
+        netIds.add(PocketAion.Networks.MAINNET.getNetID());
+//
+        val pocketAion = new PocketAion(this.act, "DEVID", netIds, 5, 10000, MASTERY_SUBNETWORK);
+
+        // To access a specific subnetwork we have created the following shortcuts:
+//        val masteryNetwork = pocketAion.mastery
+//        val mainnetNetwork = pocketAion.mainnet
+
+        // Or if you want to add a custom network you can just use:
+        //val customNetwork = pocketAion.network("your_custom_net_id")
+
+//        val wallet = pocketAion.mastery.importWallet("your_private_key");
+
+        val wallet = ((PocketAion) pocketAion).getMastery().importWallet(PRIVATE_KEY);
+
     }
 
     /**
@@ -149,6 +180,7 @@ public class PlayScreen extends Screen {
         frtime = 0;
         nextLife = EXTRA_LIFE_SCORE;
     }
+
 
     /**
      * initialize a level for play
