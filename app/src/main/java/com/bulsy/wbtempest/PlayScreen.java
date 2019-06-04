@@ -1,5 +1,6 @@
 package com.bulsy.wbtempest;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,16 +12,30 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function2;
+import network.pocket.aion.AionContract;
 import network.pocket.aion.PocketAion;
+import network.pocket.aion.exceptions.AionContractException;
+import network.pocket.core.errors.PocketError;
+import network.pocket.core.model.Wallet;
 
 /**
  * Represents the main screen of play for the game.
@@ -43,6 +58,7 @@ public class PlayScreen extends Screen {
     private static final int INIT_LEVELPREP_POV = Board.BOARD_DEPTH * 2;  // start level-intro zoom from this distance
     private static final int PER_LEV_CLEAR_BONUS = 100;  // level clear bonus is this *level
     private static final int EXTRA_LIFE_SCORE = 20000;  // score at which player gets an extra life
+    private PocketAion pocketAion;
 
     private Crawler crawler;
     private ArrayList<Ex> exes;
@@ -106,8 +122,15 @@ public class PlayScreen extends Screen {
     private String lblLevelClearBonus;
     String lblSelectStartScr;
 
-    final String TEST_ADDRESS = "0xa0b0e5190e3d52fdb282b4475c859188a221165804499216f6b8896e2fec1fdf";
+    final String TEST_ADDRESS = "0xa00243119f3732c055e894f5d281689dd3eb475bd6863b7273301bc8fce79c38";
+    final String TESTING_ACCOUNT_PK = "";
     final String MASTERY_SUBNETWORK = "32";
+    List<String> netIds = new ArrayList<>();
+    AionContract contract;
+    JSONArray ABI = null;
+    final String contractAddress;
+    Wallet wallet;
+    BigInteger contractHighestScore;
 
 
 
@@ -119,6 +142,84 @@ public class PlayScreen extends Screen {
         board = new Board();
         crawler = new Crawler();
 
+        loadJSONFromAsset(act);
+
+        // AION Netowork blockchain connection
+
+        //To access a specific subnetwork
+        netIds.add(PocketAion.Networks.MAINNET.getNetID());
+        netIds.add(PocketAion.Networks.MASTERY.getNetID());
+
+        // Initialize PocketAion
+        this.pocketAion = new PocketAion(this.act, "", netIds, 5, 60000, PocketAion.Networks.MASTERY.getNetID());
+
+        wallet = this.pocketAion.getMastery().importWallet(TESTING_ACCOUNT_PK);
+
+
+        // Read JSON ABI
+        try {
+            ABI = new JSONArray("[\n" +
+                    "   {\n" +
+                    "      \"outputs\":[\n" +
+                    "         {\n" +
+                    "            \"name\":\"\",\n" +
+                    "            \"type\":\"uint128\"\n" +
+                    "         }\n" +
+                    "      ],\n" +
+                    "      \"constant\":true,\n" +
+                    "      \"payable\":false,\n" +
+                    "      \"inputs\":[\n" +
+                    "\n" +
+                    "      ],\n" +
+                    "      \"name\":\"getHighestScore\",\n" +
+                    "      \"type\":\"function\"\n" +
+                    "   },\n" +
+                    "   {\n" +
+                    "      \"outputs\":[\n" +
+                    "\n" +
+                    "      ],\n" +
+                    "      \"constant\":false,\n" +
+                    "      \"payable\":false,\n" +
+                    "      \"inputs\":[\n" +
+                    "         {\n" +
+                    "            \"name\":\"newHighCandidate\",\n" +
+                    "            \"type\":\"uint128\"\n" +
+                    "         }\n" +
+                    "      ],\n" +
+                    "      \"name\":\"setHighestScore\",\n" +
+                    "      \"type\":\"function\"\n" +
+                    "   },\n" +
+                    "   {\n" +
+                    "      \"outputs\":[\n" +
+                    "\n" +
+                    "      ],\n" +
+                    "      \"payable\":true,\n" +
+                    "      \"inputs\":[\n" +
+                    "\n" +
+                    "      ],\n" +
+                    "      \"name\":\"\",\n" +
+                    "      \"type\":\"constructor\"\n" +
+                    "   }\n" +
+                    "]");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        // new one (uint128)
+        contractAddress = "0xA09E81C8EbF9Ac124ac1ee35F7457EC80eAfC9813ff065bF0f266dF29dC15b60";
+
+
+        // Create contract from ABI
+        contract = pocketAion.getMastery().createSmartContractInstance(contractAddress, ABI);
+
+
+        // Update highest score from blockchain
+        updateHighestScore();
+
+
+
+        // READ HIGHEST SCORE FROM FILE
+        /**
         try {
             BufferedReader f = new BufferedReader(new FileReader(act.getFilesDir() + HISCORE_FILENAME));
             hiscore = Integer.parseInt(f.readLine());
@@ -126,6 +227,8 @@ public class PlayScreen extends Screen {
         } catch (Exception e) {
             Log.d(MainActivity.LOG_ID, "ReadHiScore", e);
         }
+        **/
+
 
         lblLevel = act.getResources().getString(R.string.level)+": ";
 
@@ -142,36 +245,43 @@ public class PlayScreen extends Screen {
         lblLevelClearBonus = act.getResources().getString(R.string.lvlclrbonus);
         act.lblSelectStartScr = act.getResources().getString(R.string.selectstartscr);
 
+    }
 
 
+    /**
+     * Read JSON with credentials
+     */
 
-        // Aion connection
+    public String loadJSONFromAsset(Context context) {
+        String json = null;
+        try {
+            InputStream is = context.getAssets().open("");
+
+            int size = is.available();
+
+            byte[] buffer = new byte[size];
+
+            is.read(buffer);
+
+            is.close();
+
+            json = new String(buffer, "UTF-8");
 
 
-        List<String> netIds = new ArrayList<>();
-        netIds.add(PocketAion.Networks.MASTERY.getNetID());
-        netIds.add(PocketAion.Networks.MAINNET.getNetID());
-//
-        val pocketAion = new PocketAion(this.act, "DEVID", netIds, 5, 10000, MASTERY_SUBNETWORK);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
 
-        // To access a specific subnetwork we have created the following shortcuts:
-//        val masteryNetwork = pocketAion.mastery
-//        val mainnetNetwork = pocketAion.mainnet
+        System.out.println(json.toString());
 
-        // Or if you want to add a custom network you can just use:
-        //val customNetwork = pocketAion.network("your_custom_net_id")
-
-//        val wallet = pocketAion.mastery.importWallet("your_private_key");
-
-        val wallet = ((PocketAion) pocketAion).getMastery().importWallet(PRIVATE_KEY);
-
+        return json;
     }
 
     /**
      * Initialize the game.
      */
-    public void startGame(int startlevel)
-    {
+    public void startGame(int startlevel) {
         lives=START_LIVES;
         gameover=false;
         score = 0;
@@ -179,7 +289,33 @@ public class PlayScreen extends Screen {
         gamestarting = true;
         frtime = 0;
         nextLife = EXTRA_LIFE_SCORE;
+
+        // Update highest score from blockchain every time that game starts
+        updateHighestScore();
     }
+
+
+    /**
+     * Update the highest score from blockchain
+     */
+    public void updateHighestScore(){
+        // Call a function
+        List<Object> functionParams = new ArrayList<>();
+
+        try {
+            contract.executeConstantFunction("getHighestScore", functionParams, null, null, null, null,
+                    (PocketError pocketError, Object[] objects) -> {
+                        for (Object obj : objects){
+                            System.out.println("---------------" + obj);
+                            contractHighestScore = new BigInteger(obj.toString());
+                        }
+                        return null;
+                    });
+        } catch (AionContractException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     /**
@@ -257,6 +393,9 @@ public class PlayScreen extends Screen {
     }
 
     private void writeDataFiles() {
+
+        // READ HIGHEST SCORE FROM FILE
+        /**
         try {
             BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HISCORE_FILENAME));
             f.write(Integer.toString(hiscore)+"\n");
@@ -265,11 +404,42 @@ public class PlayScreen extends Screen {
                 act.maxStartLevel = levelnum - 1;
                 f = new BufferedWriter(new FileWriter(act.getFilesDir() + MainActivity.STARTLEVEL_FILENAME));
                 f.write(Integer.toString(act.maxStartLevel) + "\n");
+                System.out.println("act.maxStartLevel" + act.maxStartLevel);
                 f.close();
             }
         } catch (Exception e) { // if we can't write the hi score or start level file...oh well.
             Log.d(MainActivity.LOG_ID, "WriteDataFiles", e);
         }
+        **/
+
+        List<Object> functionParams = new ArrayList<>();
+
+        BigInteger hiscoreBigInteger = new BigInteger(Integer.toString(hiscore));
+
+        System.out.println("HIGHEST LOCAL: " + hiscoreBigInteger);
+        System.out.println("HIGHEST GLOBAL: " + contractHighestScore);
+
+        // if player's high score beats the global one - he gets reward
+        if (hiscoreBigInteger.compareTo(contractHighestScore) > 0) {
+            functionParams.add(hiscore);
+            try {
+                contract.executeFunction("setHighestScore", wallet, functionParams, null, new BigInteger("1999999"), new BigInteger("10000000000"), new BigInteger("0"), new Function2<PocketError, String, Unit>() {
+                    @Override
+                    public Unit invoke(PocketError pocketError, String result) {
+                        System.out.println("Result: " + result);
+                        return null;
+                    }
+                });
+            } catch (AionContractException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            System.out.println("Sorry, your score is lower than the highest. Please try again");
+        }
+
+
+
     }
 
     @Override
@@ -633,7 +803,7 @@ public class PlayScreen extends Screen {
 
 
             drawCenteredText(c, lblHigh + hiscore, statstextheight, p, 0);
-            drawCenteredText(c, lblGlobalHigh + hiscore, statstextheight2, p, 0);
+            drawCenteredText(c, lblGlobalHigh + contractHighestScore, statstextheight2, p, 0);
 
 //            drawCenteredText(c, lblLevel+levelnum, statstextheight2, p, 0);
 

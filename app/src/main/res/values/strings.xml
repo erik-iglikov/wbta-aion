@@ -2,7 +2,7 @@
     <string name="app_name">WBTempest</string>
     <string name="lives">&#x2661;</string>
     <string name="level">LEVEL</string>
-    <string name="high">HIGH</string>
+    <string name="high">LOCAL</string>
     <string name="global_high">GLOBAL</string>
     <string name="fire">FIRE</string>
     <string name="zap">ZAP</string>
