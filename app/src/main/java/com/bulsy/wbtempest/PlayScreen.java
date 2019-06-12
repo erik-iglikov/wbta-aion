@@ -1,5 +1,6 @@
 package com.bulsy.wbtempest;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -11,14 +12,23 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
+import com.serindlabs.pocketid.sdk.domain.account.Wallet;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+
+//import com.serindlabs.pocketid.sdk.PocketIDSdk;
+//import com.serindlabs.pocketid.sdk.base.PocketIDListener;
+//import com.serindlabs.pocketid.sdk.constants.PocketIDEventType;
+//import com.serindlabs.pocketid.sdk.domain.account.Wallet;
 
 /**
  * Represents the main screen of play for the game.
@@ -73,7 +83,7 @@ public class PlayScreen extends Screen {
     private boolean crawlerSpiked;
     private List<int[]> starList = null;  // will be created and populated first time around
     int[] xycoords = new int[2];
-//    float[] starpts = new float[NUM_STARS*2];
+    //    float[] starpts = new float[NUM_STARS*2];
     Paint starpaint = new Paint();
     private int height, width, halfheight, halfwidth;
     private int rhstextoffset;
@@ -104,7 +114,17 @@ public class PlayScreen extends Screen {
     private String lblLevelClearBonus;
     String lblSelectStartScr;
 
-    public PlayScreen(MainActivity act) {
+
+    final String MASTERY_SUBNETWORK = "32";
+    List<String> netIds = new ArrayList<>();
+//    AionContract contract;
+    JSONArray ABI = null;
+    final String contractAddress;
+    Wallet wallet;
+    BigInteger contractHighestScore;
+
+
+    public <val> PlayScreen(MainActivity act) {
         this.act = act;
         exes = new ArrayList<Ex>();
         enemymissiles = new ArrayList<Missile>();
@@ -112,13 +132,82 @@ public class PlayScreen extends Screen {
         board = new Board();
         crawler = new Crawler();
 
+        loadJSONFromAsset(act);
+
+
+        // Read JSON ABI
         try {
-            BufferedReader f = new BufferedReader(new FileReader(act.getFilesDir() + HISCORE_FILENAME));
-            hiscore = Integer.parseInt(f.readLine());
-            f.close();
-        } catch (Exception e) {
-            Log.d(MainActivity.LOG_ID, "ReadHiScore", e);
+            ABI = new JSONArray("[\n" +
+                    "   {\n" +
+                    "      \"outputs\":[\n" +
+                    "         {\n" +
+                    "            \"name\":\"\",\n" +
+                    "            \"type\":\"uint128\"\n" +
+                    "         }\n" +
+                    "      ],\n" +
+                    "      \"constant\":true,\n" +
+                    "      \"payable\":false,\n" +
+                    "      \"inputs\":[\n" +
+                    "\n" +
+                    "      ],\n" +
+                    "      \"name\":\"getHighestScore\",\n" +
+                    "      \"type\":\"function\"\n" +
+                    "   },\n" +
+                    "   {\n" +
+                    "      \"outputs\":[\n" +
+                    "\n" +
+                    "      ],\n" +
+                    "      \"constant\":false,\n" +
+                    "      \"payable\":false,\n" +
+                    "      \"inputs\":[\n" +
+                    "         {\n" +
+                    "            \"name\":\"newHighCandidate\",\n" +
+                    "            \"type\":\"uint128\"\n" +
+                    "         }\n" +
+                    "      ],\n" +
+                    "      \"name\":\"setHighestScore\",\n" +
+                    "      \"type\":\"function\"\n" +
+                    "   },\n" +
+                    "   {\n" +
+                    "      \"outputs\":[\n" +
+                    "\n" +
+                    "      ],\n" +
+                    "      \"payable\":true,\n" +
+                    "      \"inputs\":[\n" +
+                    "\n" +
+                    "      ],\n" +
+                    "      \"name\":\"\",\n" +
+                    "      \"type\":\"constructor\"\n" +
+                    "   }\n" +
+                    "]");
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+
+        // new one (uint128)
+        contractAddress = "0xA09E81C8EbF9Ac124ac1ee35F7457EC80eAfC9813ff065bF0f266dF29dC15b60";
+
+
+        // Create contract from ABI
+//        contract = pocketAion.getMastery().createSmartContractInstance(contractAddress, ABI);
+
+
+        // Update highest score from blockchain
+        updateHighestScore();
+
+
+
+        // READ HIGHEST SCORE FROM FILE
+        /**
+         try {
+         BufferedReader f = new BufferedReader(new FileReader(act.getFilesDir() + HISCORE_FILENAME));
+         hiscore = Integer.parseInt(f.readLine());
+         f.close();
+         } catch (Exception e) {
+         Log.d(MainActivity.LOG_ID, "ReadHiScore", e);
+         }
+         **/
+
 
         lblLevel = act.getResources().getString(R.string.level)+": ";
 
@@ -134,13 +223,44 @@ public class PlayScreen extends Screen {
         lblExit = act.getResources().getString(R.string.exit);
         lblLevelClearBonus = act.getResources().getString(R.string.lvlclrbonus);
         act.lblSelectStartScr = act.getResources().getString(R.string.selectstartscr);
+
+    }
+
+
+    /**
+     * Read JSON with credentials
+     */
+
+    public String loadJSONFromAsset(Context context) {
+        String json = null;
+        try {
+            InputStream is = context.getAssets().open("");
+
+            int size = is.available();
+
+            byte[] buffer = new byte[size];
+
+            is.read(buffer);
+
+            is.close();
+
+            json = new String(buffer, "UTF-8");
+
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+
+        System.out.println(json.toString());
+
+        return json;
     }
 
     /**
      * Initialize the game.
      */
-    public void startGame(int startlevel)
-    {
+    public void startGame(int startlevel) {
         lives=START_LIVES;
         gameover=false;
         score = 0;
@@ -148,7 +268,34 @@ public class PlayScreen extends Screen {
         gamestarting = true;
         frtime = 0;
         nextLife = EXTRA_LIFE_SCORE;
+
+        // Update highest score from blockchain every time that game starts
+        updateHighestScore();
     }
+
+
+    /**
+     * Update the highest score from blockchain
+     */
+    public void updateHighestScore(){
+        // Call a function
+        List<Object> functionParams = new ArrayList<>();
+
+//        try {
+//            contract.executeConstantFunction("getHighestScore", functionParams, null, null, null, null,
+//                    (PocketError pocketError, Object[] objects) -> {
+//                        for (Object obj : objects){
+//                            System.out.println("---------------" + obj);
+//                            contractHighestScore = new BigInteger(obj.toString());
+//                        }
+//                        return null;
+//                    });
+//        } catch (AionContractException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+
 
     /**
      * initialize a level for play
@@ -225,19 +372,53 @@ public class PlayScreen extends Screen {
     }
 
     private void writeDataFiles() {
-        try {
-            BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HISCORE_FILENAME));
-            f.write(Integer.toString(hiscore)+"\n");
-            f.close();
-            if (levelnum > MainActivity.LOW_LEVEL_THRESHOLD || levelnum > act.maxStartLevel) {
-                act.maxStartLevel = levelnum - 1;
-                f = new BufferedWriter(new FileWriter(act.getFilesDir() + MainActivity.STARTLEVEL_FILENAME));
-                f.write(Integer.toString(act.maxStartLevel) + "\n");
-                f.close();
-            }
-        } catch (Exception e) { // if we can't write the hi score or start level file...oh well.
-            Log.d(MainActivity.LOG_ID, "WriteDataFiles", e);
+
+        // READ HIGHEST SCORE FROM FILE
+        /**
+         try {
+         BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HISCORE_FILENAME));
+         f.write(Integer.toString(hiscore)+"\n");
+         f.close();
+         if (levelnum > MainActivity.LOW_LEVEL_THRESHOLD || levelnum > act.maxStartLevel) {
+         act.maxStartLevel = levelnum - 1;
+         f = new BufferedWriter(new FileWriter(act.getFilesDir() + MainActivity.STARTLEVEL_FILENAME));
+         f.write(Integer.toString(act.maxStartLevel) + "\n");
+         System.out.println("act.maxStartLevel" + act.maxStartLevel);
+         f.close();
+         }
+         } catch (Exception e) { // if we can't write the hi score or start level file...oh well.
+         Log.d(MainActivity.LOG_ID, "WriteDataFiles", e);
+         }
+         **/
+
+        List<Object> functionParams = new ArrayList<>();
+
+        BigInteger hiscoreBigInteger = new BigInteger(Integer.toString(hiscore));
+
+        System.out.println("HIGHEST LOCAL: " + hiscoreBigInteger);
+        System.out.println("HIGHEST GLOBAL: " + contractHighestScore);
+
+        // if player's high score beats the global one - he gets reward
+        if (hiscoreBigInteger.compareTo(contractHighestScore) > 0) {
+            functionParams.add(hiscore);
+//            try {
+//                contract.executeFunction("setHighestScore", wallet, functionParams, null, new BigInteger("1999999"), new BigInteger("10000000000"), new BigInteger("0"), new Function2<PocketError, String, Unit>() {
+//                    @Override
+//                    public Unit invoke(PocketError pocketError, String result) {
+//                        System.out.println("Result: " + result);
+//                        return null;
+//                    }
+//                });
+//            } catch (AionContractException e) {
+//                e.printStackTrace();
+//            }
+
+        } else {
+            System.out.println("Sorry, your score is lower than the highest. Please try again");
         }
+
+
+
     }
 
     @Override
@@ -601,7 +782,7 @@ public class PlayScreen extends Screen {
 
 
             drawCenteredText(c, lblHigh + hiscore, statstextheight, p, 0);
-            drawCenteredText(c, lblGlobalHigh + hiscore, statstextheight2, p, 0);
+            drawCenteredText(c, lblGlobalHigh + contractHighestScore, statstextheight2, p, 0);
 
 //            drawCenteredText(c, lblLevel+levelnum, statstextheight2, p, 0);
 
@@ -742,14 +923,14 @@ public class PlayScreen extends Screen {
                 if (m.isVisible()
                         && (m.getColumn() == ex.getColumn() && (Math.abs(m.getZPos() - ex.getZ())< Ex.HEIGHT))
                         || ((m.getColumn() == crawler.getColumn())
-                            && (m.getZPos() <= Missile.HEIGHT) // if we JUST fired the missile and ex is adjacent...
-                            && (ex.getZ() <= 0)
-                            && (!ex.isJumping())
-                            && ( // adjacent fire depends on if the screen is continuous
-                                (((ex.getColumn() +1) == crawler.getColumn()) || ((crawler.getColumn()+1) == ex.getColumn())) ||
+                        && (m.getZPos() <= Missile.HEIGHT) // if we JUST fired the missile and ex is adjacent...
+                        && (ex.getZ() <= 0)
+                        && (!ex.isJumping())
+                        && ( // adjacent fire depends on if the screen is continuous
+                        (((ex.getColumn() +1) == crawler.getColumn()) || ((crawler.getColumn()+1) == ex.getColumn())) ||
                                 ((((ex.getColumn() +1)%ncols == crawler.getColumn()) || ((crawler.getColumn()+1)%ncols == ex.getColumn())) && board.isContinuous())
-                               )
-                           )){
+                )
+                )){
                     //Log.d(act.LOG_ID, "ex hit,  m:"+m.getZPos() + " "+m+" ex:"+ex);
                     if (ex.isPod()) {
                         // this ex is a pod; split into normal exes
@@ -878,15 +1059,15 @@ public class PlayScreen extends Screen {
                             float tvx = VelocityTrackerCompat.getXVelocity(mVelocityTracker, pid);
                             float tvy = VelocityTrackerCompat.getYVelocity(mVelocityTracker, pid);
 
-                                if (tvx == 0)
-                                    tvx = 0.001f;
-                                double velmag = Math.sqrt(Math.pow(tvx, 2) + Math.pow(tvy, 2));
-                                double veldir = Math.atan(tvy / tvx);
-                                if (tvx < 0)
-                                    veldir += Math.PI;
-                                double alignedComponentFactor = Math.cos(veldir - posnormdir);
-                                double fact = alignedComponentFactor * velmag / MAX_VEL;
-                                crawler.accel(fact);
+                            if (tvx == 0)
+                                tvx = 0.001f;
+                            double velmag = Math.sqrt(Math.pow(tvx, 2) + Math.pow(tvy, 2));
+                            double veldir = Math.atan(tvy / tvx);
+                            if (tvx < 0)
+                                veldir += Math.PI;
+                            double alignedComponentFactor = Math.cos(veldir - posnormdir);
+                            double fact = alignedComponentFactor * velmag / MAX_VEL;
+                            crawler.accel(fact);
 //                                info = String.format("acf:%.2f veld:%.2f\tposnd:%.2f\tvelmag:%d",
 //                                        (float) alignedComponentFactor, (float) veldir, (float) posnormdir, (int) velmag);
                         }

@@ -1,13 +1,15 @@
 package com.bulsy.wbtempest;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -17,12 +19,17 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.serindlabs.pocketid.sdk.PocketIDSdk;
+import com.serindlabs.pocketid.sdk.base.PocketIDListener;
+import com.serindlabs.pocketid.sdk.constants.PocketIDEventType;
+import com.serindlabs.pocketid.sdk.constants.PocketIDRequestCode;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity implements PocketIDListener {
     static final String LOG_ID = "wbt";
     private static final float EXPECTED_DENSITY = 315.0f;  // original target density of runtime device
     private static final float EXPECTED_WIDTH_PIX = 720.0f;  // original target width of runtime device
@@ -65,6 +72,15 @@ public class MainActivity extends ActionBarActivity {
             TS_NORMAL = (int)(38 * sizescalefactor);
             TS_BIG = (int)(80 * sizescalefactor);
 
+
+//            getWindow().addContentView(entryScreen);
+//
+//            <com.serindlabs.pocketid.sdk.widget.PocketIDButton
+//            android:id="@+id/btnLogin"
+//            android:layout_width="wrap_content"
+//            android:layout_height="wrap_content" />
+
+
             // get max start level
             BufferedReader f = null;
             try {
@@ -84,6 +100,12 @@ public class MainActivity extends ActionBarActivity {
             mainView = new FullScreenView(this);
             setContentView(mainView);
 
+            // POCKETID INTEGRATION
+//            setContentView(mainView);
+            PocketIDSdk.getInstance().initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
+            super.onCreate(savedInstanceState);
+            PocketIDSdk.getInstance().registerListener(this);
+
             // set up sounds
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
             soundpool = new SoundPool(20, AudioManager.STREAM_MUSIC, 0);
@@ -102,6 +124,11 @@ public class MainActivity extends ActionBarActivity {
             soundMap.put(Sound.LEVCHG, soundpool.load(descriptor, 1));
             descriptor = getAssets().openFd("exlife.mp3");
             soundMap.put(Sound.EXLIFE, soundpool.load(descriptor, 1));
+
+
+
+
+
 
         } catch (Exception e) {
             // panic, crash, fine -- but let me know what happened.
@@ -187,6 +214,61 @@ public class MainActivity extends ActionBarActivity {
         finish();
         System.exit(0);
     }
+
+
+    /**
+     * PocketID methods
+     */
+
+//    @Override
+//    public void onCreate(Bundle savedInstanceState) {
+//        setContentView(this.entryScreen);
+//        PocketIDSdk.getInstance().initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
+//        super.onCreate(savedInstanceState);
+//        PocketIDSdk.getInstance().registerListener(this);
+//    }
+
+    @Override
+    public void onEvent(String event, Bundle data) {
+        switch (event)  {
+            case PocketIDEventType.EVENT_LOGIN_SUCCESS:
+                System.out.println("DDDDDDDD");
+                break;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        PocketIDSdk.getInstance().unregisterListener(this);
+        super.onDestroy();
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        System.out.println("1123123144224!");
+
+        if (requestCode == PocketIDRequestCode.AUTHENTICATION && resultCode == RESULT_OK) {
+            // code here
+            System.out.println("AAAAAA!");
+
+
+//            Snackbar.make(findViewById(R.id.pocketid), R.string.app_name,
+//                    Snackbar.LENGTH_SHORT)
+//                    .show();
+
+            Intent startIntent = new Intent(getApplicationContext(), MainActivity.class);
+            startActivity(startIntent);
+
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+            System.err.println("Wrong username or password!");
+        }
+    }
+
+
+
+
 
     /**
      * This inner class handles the main render loop, and delegates drawing and event handling to
