@@ -12,7 +12,6 @@ import android.view.VelocityTracker;
 import android.view.View;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -20,6 +19,7 @@ import java.util.List;
  */
 public class EntryScreen extends Screen {
     MainActivity act;
+    Login login;
     Paint p = new Paint();
     Rect scaledDst = new Rect(); // generic rect for scaling
     Rect playBtnBounds = null;

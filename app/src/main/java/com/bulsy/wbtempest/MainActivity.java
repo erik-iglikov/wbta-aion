@@ -1,14 +1,12 @@
 package com.bulsy.wbtempest;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -19,17 +17,12 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.serindlabs.pocketid.sdk.PocketIDSdk;
-import com.serindlabs.pocketid.sdk.base.PocketIDListener;
-import com.serindlabs.pocketid.sdk.constants.PocketIDEventType;
-import com.serindlabs.pocketid.sdk.constants.PocketIDRequestCode;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements PocketIDListener {
+public class MainActivity extends AppCompatActivity {
     static final String LOG_ID = "wbt";
     private static final float EXPECTED_DENSITY = 315.0f;  // original target density of runtime device
     private static final float EXPECTED_WIDTH_PIX = 720.0f;  // original target width of runtime device
@@ -40,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
     Screen entryScreen;
     PlayScreen playScreen;
     Screen currentScreen;
+    Login loginScreen;
     FullScreenView mainView;
     Typeface gamefont;
     float sizescalefactor; // scaling factor for current device screen, compared to expected/development screen
@@ -73,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
             TS_BIG = (int)(80 * sizescalefactor);
 
 
-//            getWindow().addContentView(entryScreen);
+//            getWindow().addContentView(loginScreen);
 //
 //            <com.serindlabs.pocketid.sdk.widget.PocketIDButton
 //            android:id="@+id/btnLogin"
@@ -96,15 +90,17 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
             // create screens
             entryScreen = new EntryScreen(this);
             playScreen = new PlayScreen(this);
+            loginScreen = new Login();
+
 
             mainView = new FullScreenView(this);
             setContentView(mainView);
 
             // POCKETID INTEGRATION
 //            setContentView(mainView);
-            PocketIDSdk.getInstance().initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
-            super.onCreate(savedInstanceState);
-            PocketIDSdk.getInstance().registerListener(this);
+//            PocketIDSdk.getInstance().initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
+//            super.onCreate(savedInstanceState);
+//            PocketIDSdk.getInstance().registerListener(this);
 
             // set up sounds
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -228,43 +224,43 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
 //        PocketIDSdk.getInstance().registerListener(this);
 //    }
 
-    @Override
-    public void onEvent(String event, Bundle data) {
-        switch (event)  {
-            case PocketIDEventType.EVENT_LOGIN_SUCCESS:
-                System.out.println("DDDDDDDD");
-                break;
-        }
-    }
+//    @Override
+//    public void onEvent(String event, Bundle data) {
+//        switch (event)  {
+//            case PocketIDEventType.EVENT_LOGIN_SUCCESS:
+//                System.out.println("DDDDDDDD");
+//                break;
+//        }
+//    }
 
-    @Override
-    protected void onDestroy() {
-        PocketIDSdk.getInstance().unregisterListener(this);
-        super.onDestroy();
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        System.out.println("1123123144224!");
-
-        if (requestCode == PocketIDRequestCode.AUTHENTICATION && resultCode == RESULT_OK) {
-            // code here
-            System.out.println("AAAAAA!");
-
-
-//            Snackbar.make(findViewById(R.id.pocketid), R.string.app_name,
-//                    Snackbar.LENGTH_SHORT)
-//                    .show();
-
-            Intent startIntent = new Intent(getApplicationContext(), MainActivity.class);
-            startActivity(startIntent);
-
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-            System.err.println("Wrong username or password!");
-        }
-    }
+//    @Override
+//    protected void onDestroy() {
+//        PocketIDSdk.getInstance().unregisterListener(this);
+//        super.onDestroy();
+//    }
+//
+//
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        System.out.println("1123123144224!");
+//
+//        if (requestCode == PocketIDRequestCode.AUTHENTICATION && resultCode == RESULT_OK) {
+//            // code here
+//            System.out.println("AAAAAA!");
+//
+//
+////            Snackbar.make(findViewById(R.id.pocketid), R.string.app_name,
+////                    Snackbar.LENGTH_SHORT)
+////                    .show();
+//
+//            Intent startIntent = new Intent(getApplicationContext(), MainActivity.class);
+//            startActivity(startIntent);
+//
+//        } else {
+//            super.onActivityResult(requestCode, resultCode, data);
+//            System.err.println("Wrong username or password!");
+//        }
+//    }
 
 
 
@@ -283,6 +279,7 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
             super(context);
             holder = getHolder();
             currentScreen = entryScreen;
+//            currentScreen = loginScreen;
             setOnTouchListener(this);
         }
 
