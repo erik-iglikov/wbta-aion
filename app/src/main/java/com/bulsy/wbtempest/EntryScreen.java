@@ -11,6 +11,11 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 
+import com.serindlabs.pocketid.sdk.PocketIDSdk;
+import com.serindlabs.pocketid.sdk.common.User;
+import com.serindlabs.pocketid.sdk.domain.account.BalanceResponse;
+import com.serindlabs.pocketid.sdk.utils.PocketIDUiUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -167,10 +172,43 @@ public class EntryScreen extends Screen {
         p.setTextSize(act.TS_NORMAL);
         String msg = "v"+ BuildConfig.VERSION_NAME;
         int xTextEnd = (int)(width*.99f);
-        c.drawText(msg, xTextEnd-p.measureText(msg), height - 80, p);
+        c.drawText(msg, xTextEnd-p.measureText(msg), height - 90, p);
         int w1 = scaledDst.width();
         msg = "BULSY GAMES 2015";
         c.drawText(msg, xTextEnd-p.measureText(msg), height - 40, p);
+
+
+        // Get username
+        User user = PocketIDSdk.getInstance().getUser();
+        String balanceString = "0 AION";
+        BalanceResponse balanceRsp = null;
+
+        // Get balance
+        if (PocketIDSdk.getInstance().getBalance() == null) {
+            PocketIDSdk.getInstance().fetchBalance();
+        } else {
+            balanceRsp = PocketIDSdk.getInstance().getBalance();
+        }
+
+        balanceString = PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " aion";
+//        System.out.println("balanceRsp : " + PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " AION");
+
+
+        // user line
+        p.setTextSize(act.TS_NORMAL);
+//        String msgUser = "v"+ BuildConfig.VERSION_NAME;
+        String msgUser = "username: " + user.getUsername();
+
+//        statstextheight = (int)(scaledDst.height() +8);
+
+        int xTextEndUser = (int)(width*.99f);
+        c.drawText(msgUser, 15, (int)(scaledDst.height() + 60) - 90, p);
+        int w2 = scaledDst.width();
+        String msgBalance = "balance: " + balanceString;
+        c.drawText(msgBalance, 15, (int)(scaledDst.height() + 60) - 40, p);
+
+
+
     }
 
     VelocityTracker mVelocityTracker = VelocityTracker.obtain();

@@ -96,6 +96,10 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
                     .init(ABI, contractAddress);
 
 
+
+
+            getCurrentBalance();
+            getCurrentValue();
 //            String encodedData;
 //            PocketIDSdk.getInstance()
 //                    .getContractHandler()
@@ -186,6 +190,19 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
 //        }
 //    }
 
+    private void getCurrentValue() {
+        PocketIDSdk.getInstance().getContractHandler().encode(this, GET_HIGHEST_SCORE_METHOD);
+    }
+
+    private void getCurrentBalance() {
+        BalanceResponse balanceResponse = PocketIDSdk.getInstance().getBalance();
+        if (balanceResponse != null) {
+            updateBalance(balanceResponse);
+        } else {
+            PocketIDSdk.getInstance().fetchBalance();
+        }
+        getCurrentValue();
+    }
 
     @Override
     public void onEvent(String s, Bundle bundle) {
@@ -220,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
     // TODO: update this one
     private void callRequestSuccess(Bundle bundle) {
 //        updateValue(bundle.getString(PocketIDArgumentKey.KEY_DATA_STRING));
+        System.out.println(bundle.getString(PocketIDArgumentKey.KEY_DATA_STRING));
         return;
     }
 
