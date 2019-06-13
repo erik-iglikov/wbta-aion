@@ -120,8 +120,8 @@ public class PlayScreen extends Screen {
 //    AionContract contract;
     JSONArray ABI = null;
     final String contractAddress;
-    Wallet wallet;
     BigInteger contractHighestScore;
+    Wallet wallet;
 
 
     public <val> PlayScreen(MainActivity act) {

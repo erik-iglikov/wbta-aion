@@ -17,12 +17,20 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.serindlabs.pocketid.sdk.PocketIDSdk;
+import com.serindlabs.pocketid.sdk.base.PocketIDListener;
+import com.serindlabs.pocketid.sdk.constants.PocketIDArgumentKey;
+import com.serindlabs.pocketid.sdk.constants.PocketIDEventType;
+import com.serindlabs.pocketid.sdk.domain.account.BalanceResponse;
+import com.serindlabs.pocketid.sdk.utils.PocketIDUiUtil;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements PocketIDListener {
     static final String LOG_ID = "wbt";
     private static final float EXPECTED_DENSITY = 315.0f;  // original target density of runtime device
     private static final float EXPECTED_WIDTH_PIX = 720.0f;  // original target width of runtime device
@@ -33,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
     Screen entryScreen;
     PlayScreen playScreen;
     Screen currentScreen;
-    Login loginScreen;
     FullScreenView mainView;
     Typeface gamefont;
     float sizescalefactor; // scaling factor for current device screen, compared to expected/development screen
@@ -42,6 +49,22 @@ public class MainActivity extends AppCompatActivity {
     DisplayMetrics metrics;
     int maxStartLevel = 1;
     String lblSelectStartScr;
+
+
+
+    final String ABI = "[{\"outputs\":[],\"constant\":false,\"payable\":false,\"inputs\":[{\"name\":\"newHighCandidate\",\"type\":\"int128\"}],\"name\":\"setHighestScore\",\"type\":\"function\"},{\"outputs\":[{\"name\":\"\",\"type\":\"int128\"}],\"constant\":true,\"payable\":false,\"inputs\":[],\"name\":\"getHigestScore\",\"type\":\"function\"},{\"outputs\":[],\"payable\":true,\"inputs\":[],\"name\":\"\",\"type\":\"constructor\"}]";
+    final String contractAddress = "0xA09E81C8EbF9Ac124ac1ee35F7457EC80eAfC9813ff065bF0f266dF29dC15b60";
+
+    BigInteger contractHighestScore;
+    private static final String GET_HIGHEST_SCORE_METHOD = "getHighestScore";
+    private static final String SET_STRING_METHOD = "setHighestScore";
+    private String setStringEncoded;
+    private String getStringEncoded;
+
+
+//    private ActivityMainBinding binding;
+
+
 
     /**
      * Initialize the activity.
@@ -67,12 +90,29 @@ public class MainActivity extends AppCompatActivity {
             TS_BIG = (int)(80 * sizescalefactor);
 
 
-//            getWindow().addContentView(loginScreen);
+            // Init contract
+            PocketIDSdk.getInstance()
+                    .getContractHandler()
+                    .init(ABI, contractAddress);
+
+
+//            String encodedData;
+//            PocketIDSdk.getInstance()
+//                    .getContractHandler()
+//                    .encode(this, GET_HIGHEST_SCORE_METHOD);
 //
-//            <com.serindlabs.pocketid.sdk.widget.PocketIDButton
-//            android:id="@+id/btnLogin"
-//            android:layout_width="wrap_content"
-//            android:layout_height="wrap_content" />
+//            String getStringEncoded = savedInstanceState.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
+//
+//            PocketIDSdk
+//                    .getInstance()
+//                    .getContractHandler()
+//                    .call(this, getStringEncoded);
+
+
+//            PocketIDSdk.getInstance()
+//                    .getContractHandler()
+//                    .call(this, encodedData);
+
 
 
             // get max start level
@@ -90,17 +130,10 @@ public class MainActivity extends AppCompatActivity {
             // create screens
             entryScreen = new EntryScreen(this);
             playScreen = new PlayScreen(this);
-            loginScreen = new Login();
-
 
             mainView = new FullScreenView(this);
             setContentView(mainView);
 
-            // POCKETID INTEGRATION
-//            setContentView(mainView);
-//            PocketIDSdk.getInstance().initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
-//            super.onCreate(savedInstanceState);
-//            PocketIDSdk.getInstance().registerListener(this);
 
             // set up sounds
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -131,6 +164,91 @@ public class MainActivity extends AppCompatActivity {
             Log.d(LOG_ID, "onCreate", e);
         }
     }
+
+
+//    @Override
+//    public void onEvent(String s, Bundle bundle) {
+//        switch (s) {
+//            case PocketIDEventType.EVENT_LOGGED_OUT:
+//                onLoggedOut();
+//                break;
+//            case PocketIDEventType.EVENT_GET_BALANCE_SUCCESS:
+//                updateBalance(PocketIDSdk.getInstance().getBalance());
+//                break;
+//            case PocketIDEventType.EVENT_TR_ENCODE_SUCCESS:
+//                encodedDataFetched(bundle);
+//                break;
+//            case PocketIDEventType.EVENT_TR_CALL_SUCCESS:
+//                callRequestSuccess(bundle);
+//                break;
+//            case PocketIDEventType.EVENT_TR_SEND_SUCCESS:
+//                sendRequestSuccess(bundle);
+//        }
+//    }
+
+
+    @Override
+    public void onEvent(String s, Bundle bundle) {
+        switch (s) {
+            case PocketIDEventType.EVENT_LOGGED_OUT:
+                onLoggedOut();
+                break;
+            case PocketIDEventType.EVENT_GET_BALANCE_SUCCESS:
+                updateBalance(PocketIDSdk.getInstance().getBalance());
+                break;
+            case PocketIDEventType.EVENT_TR_ENCODE_SUCCESS:
+                encodedDataFetched(bundle);
+                break;
+            case PocketIDEventType.EVENT_TR_CALL_SUCCESS:
+                callRequestSuccess(bundle);
+                break;
+            case PocketIDEventType.EVENT_TR_SEND_SUCCESS:
+                sendRequestSuccess(bundle);
+        }
+    }
+
+    // TODO: update this one
+    private void sendRequestSuccess(Bundle bundle) {
+        String trHash = bundle.getString(PocketIDArgumentKey.KEY_TRANSACTION_HASH);
+        System.out.println("Update Request Submitted. Press refresh on current value.\n"
+                + "Transaction Hash: " + trHash);
+//        binding.updateValueStatus.setText("Update Request Submitted. Press refresh on current value.\n"
+//                + "Transaction Hash: " + trHash);
+    }
+
+
+    // TODO: update this one
+    private void callRequestSuccess(Bundle bundle) {
+//        updateValue(bundle.getString(PocketIDArgumentKey.KEY_DATA_STRING));
+        return;
+    }
+
+    private void encodedDataFetched(Bundle bundle) {
+        String methodName = bundle.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
+        if (methodName.equals(GET_HIGHEST_SCORE_METHOD)) {
+            getStringEncodeDataFetched(bundle);
+        }
+//        else if (methodName.equals(SET_STRING_METHOD)) {
+//            setStringEncodeDataFetched(bundle);
+//        }
+    }
+
+    private void getStringEncodeDataFetched(Bundle bundle) {
+        getStringEncoded = bundle.getString(PocketIDArgumentKey.KEY_ENCODED_DATA);
+        PocketIDSdk.getInstance().getContractHandler().call(this, getStringEncoded);
+    }
+
+    private void onLoggedOut() {
+//        setUiState();
+        return;
+    }
+    private void updateBalance(BalanceResponse balanceResponse) {
+//        bundle.balance.setText(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
+        System.out.println(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
+    }
+
+
+
 
     /**
      * play the inpassed sound
@@ -212,59 +330,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * PocketID methods
-     */
-
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        setContentView(this.entryScreen);
-//        PocketIDSdk.getInstance().initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
-//        super.onCreate(savedInstanceState);
-//        PocketIDSdk.getInstance().registerListener(this);
-//    }
-
-//    @Override
-//    public void onEvent(String event, Bundle data) {
-//        switch (event)  {
-//            case PocketIDEventType.EVENT_LOGIN_SUCCESS:
-//                System.out.println("DDDDDDDD");
-//                break;
-//        }
-//    }
-
-//    @Override
-//    protected void onDestroy() {
-//        PocketIDSdk.getInstance().unregisterListener(this);
-//        super.onDestroy();
-//    }
-//
-//
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-//        System.out.println("1123123144224!");
-//
-//        if (requestCode == PocketIDRequestCode.AUTHENTICATION && resultCode == RESULT_OK) {
-//            // code here
-//            System.out.println("AAAAAA!");
-//
-//
-////            Snackbar.make(findViewById(R.id.pocketid), R.string.app_name,
-////                    Snackbar.LENGTH_SHORT)
-////                    .show();
-//
-//            Intent startIntent = new Intent(getApplicationContext(), MainActivity.class);
-//            startActivity(startIntent);
-//
-//        } else {
-//            super.onActivityResult(requestCode, resultCode, data);
-//            System.err.println("Wrong username or password!");
-//        }
-//    }
-
-
-
-
 
     /**
      * This inner class handles the main render loop, and delegates drawing and event handling to
@@ -279,7 +344,6 @@ public class MainActivity extends AppCompatActivity {
             super(context);
             holder = getHolder();
             currentScreen = entryScreen;
-//            currentScreen = loginScreen;
             setOnTouchListener(this);
         }
 
