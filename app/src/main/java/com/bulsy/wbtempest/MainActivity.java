@@ -77,6 +77,24 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
             super.onCreate(savedInstanceState);
+
+
+
+
+
+
+//            PocketIDSdk.getInstance().getContractHandler().init(ABI, contractAddress);
+//
+//            setContentView(R.layout.activity_main);
+//            PocketIDSdk.getInstance()
+//                    .initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
+//            super.onCreate(savedInstanceState);
+//            PocketIDSdk.getInstance().registerListener(this);
+
+
+
+
+
             metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
             gamefont = Typeface.createFromAsset(getAssets(), "lt.ttf");
@@ -90,34 +108,9 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
             TS_BIG = (int)(80 * sizescalefactor);
 
 
-            // Init contract
-            PocketIDSdk.getInstance()
-                    .getContractHandler()
-                    .init(ABI, contractAddress);
 
 
-
-
-            getCurrentBalance();
-            getCurrentValue();
-//            String encodedData;
-//            PocketIDSdk.getInstance()
-//                    .getContractHandler()
-//                    .encode(this, GET_HIGHEST_SCORE_METHOD);
-//
-//            String getStringEncoded = savedInstanceState.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
-//
-//            PocketIDSdk
-//                    .getInstance()
-//                    .getContractHandler()
-//                    .call(this, getStringEncoded);
-
-
-//            PocketIDSdk.getInstance()
-//                    .getContractHandler()
-//                    .call(this, encodedData);
-
-
+//            System.out.println("getHighestScore : " + result);
 
             // get max start level
             BufferedReader f = null;
@@ -137,6 +130,56 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
 
             mainView = new FullScreenView(this);
             setContentView(mainView);
+
+
+
+
+
+//            PocketIDSdk.getInstance()
+//                    .initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
+
+//            // Init contract
+//            PocketIDSdk.getInstance()
+//                    .getContractHandler()
+//                    .init(ABI, contractAddress);
+
+
+//            PocketIDSdk.getInstance().registerListener(this);
+
+
+//            getCurrentBalance();
+//            getCurrentValue();
+
+//            String encodedData;
+
+            // Encode data
+//            PocketIDSdk.getInstance()
+//                    .getContractHandler()
+//                    .encode(this, GET_HIGHEST_SCORE_METHOD);
+
+
+
+
+            // Store encoded data
+//            getStringEncoded = savedInstanceState.getString(PocketIDArgumentKey.KEY_ENCODED_DATA);
+
+//            String getStringEncoded = savedInstanceState.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
+
+            // Use encoded data to call contract
+//            PocketIDSdk.getInstance()
+//                    .getContractHandler()
+//                    .call(this, getStringEncoded);
+
+//            super.onCreate(savedInstanceState);
+//            String result = savedInstanceState.getString(PocketIDArgumentKey.KEY_DATA_STRING);
+//            String methodName = savedInstanceState.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
+
+//            getStringEncoded = savedInstanceState.getString(PocketIDArgumentKey.KEY_ENCODED_DATA);
+//            PocketIDSdk.getInstance().getContractHandler().call(this, getStringEncoded);
+
+//            callRequestSuccess(savedInstanceState);
+
+
 
 
             // set up sounds
@@ -165,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
 
         } catch (Exception e) {
             // panic, crash, fine -- but let me know what happened.
+//            System.out.println(PocketIDArgumentKey.KEY_FAIL_MESSAGE);
             Log.d(LOG_ID, "onCreate", e);
         }
     }

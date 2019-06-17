@@ -21,6 +21,7 @@ public class Login extends AppCompatActivity implements PocketIDListener {
     public void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_login);
         PocketIDSdk.getInstance()
+//                .setInProd(false)
                 .initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
         super.onCreate(savedInstanceState);
         PocketIDSdk.getInstance().registerListener(this);

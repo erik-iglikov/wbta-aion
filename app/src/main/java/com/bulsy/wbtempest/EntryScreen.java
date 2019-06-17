@@ -14,6 +14,7 @@ import android.view.View;
 import com.serindlabs.pocketid.sdk.PocketIDSdk;
 import com.serindlabs.pocketid.sdk.common.User;
 import com.serindlabs.pocketid.sdk.domain.account.BalanceResponse;
+import com.serindlabs.pocketid.sdk.domain.token.TransactionsResponse;
 import com.serindlabs.pocketid.sdk.utils.PocketIDUiUtil;
 
 import java.util.ArrayList;
@@ -38,6 +39,11 @@ public class EntryScreen extends Screen {
     float tvx = 0; // touch velocity along x axis
     long frtime = 0;
     float sqpts[] = null;
+
+    User user = null;
+    String balanceString = "0 AION";
+    BalanceResponse balanceRsp = null;
+
 
     public EntryScreen(MainActivity act) {
         int x = ZMagic.Z_MAX_CACHE; // force load of ZMagic class while showing entry screen
@@ -178,20 +184,29 @@ public class EntryScreen extends Screen {
         c.drawText(msg, xTextEnd-p.measureText(msg), height - 40, p);
 
 
+        PocketIDSdk.getInstance()
+                .setInProd(false)
+                .initialize(act, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
+//        super.onCreate(savedInstanceState);
+        PocketIDSdk.getInstance().registerListener(act);
+
+
         // Get username
-        User user = PocketIDSdk.getInstance().getUser();
-        String balanceString = "0 AION";
-        BalanceResponse balanceRsp = null;
+        user = PocketIDSdk.getInstance().getUser();
+        balanceString = "0 AION";
+        balanceRsp = null;
 
-        // Get balance
-        if (PocketIDSdk.getInstance().getBalance() == null) {
-            PocketIDSdk.getInstance().fetchBalance();
-        } else {
-            balanceRsp = PocketIDSdk.getInstance().getBalance();
-        }
 
+        PocketIDSdk.getInstance().fetchBalance();
+        balanceRsp = PocketIDSdk.getInstance().getBalance();
+
+        PocketIDSdk.getInstance().fetchTransactions();
+        TransactionsResponse transactionsRsp = PocketIDSdk.getInstance().getTransactions();
+
+
+        System.out.println(balanceRsp);
         balanceString = PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " aion";
-//        System.out.println("balanceRsp : " + PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " AION");
+        System.out.println("balanceRsp : " + PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " AION");
 
 
         // user line
