@@ -17,20 +17,12 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.serindlabs.pocketid.sdk.PocketIDSdk;
-import com.serindlabs.pocketid.sdk.base.PocketIDListener;
-import com.serindlabs.pocketid.sdk.constants.PocketIDArgumentKey;
-import com.serindlabs.pocketid.sdk.constants.PocketIDEventType;
-import com.serindlabs.pocketid.sdk.domain.account.BalanceResponse;
-import com.serindlabs.pocketid.sdk.utils.PocketIDUiUtil;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements PocketIDListener {
+public class MainActivity extends AppCompatActivity {
     static final String LOG_ID = "wbt";
     private static final float EXPECTED_DENSITY = 315.0f;  // original target density of runtime device
     private static final float EXPECTED_WIDTH_PIX = 720.0f;  // original target width of runtime device
@@ -52,20 +44,6 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
 
 
 
-    final String ABI = "[{\"outputs\":[],\"constant\":false,\"payable\":false,\"inputs\":[{\"name\":\"newHighCandidate\",\"type\":\"int128\"}],\"name\":\"setHighestScore\",\"type\":\"function\"},{\"outputs\":[{\"name\":\"\",\"type\":\"int128\"}],\"constant\":true,\"payable\":false,\"inputs\":[],\"name\":\"getHigestScore\",\"type\":\"function\"},{\"outputs\":[],\"payable\":true,\"inputs\":[],\"name\":\"\",\"type\":\"constructor\"}]";
-    final String contractAddress = "0xA09E81C8EbF9Ac124ac1ee35F7457EC80eAfC9813ff065bF0f266dF29dC15b60";
-
-    BigInteger contractHighestScore;
-    private static final String GET_HIGHEST_SCORE_METHOD = "getHighestScore";
-    private static final String SET_STRING_METHOD = "setHighestScore";
-    private String setStringEncoded;
-    private String getStringEncoded;
-
-
-//    private ActivityMainBinding binding;
-
-
-
     /**
      * Initialize the activity.
      * @param savedInstanceState
@@ -77,23 +55,6 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
             super.onCreate(savedInstanceState);
-
-
-
-
-
-
-//            PocketIDSdk.getInstance().getContractHandler().init(ABI, contractAddress);
-//
-//            setContentView(R.layout.activity_main);
-//            PocketIDSdk.getInstance()
-//                    .initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
-//            super.onCreate(savedInstanceState);
-//            PocketIDSdk.getInstance().registerListener(this);
-
-
-
-
 
             metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -132,56 +93,6 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
             setContentView(mainView);
 
 
-
-
-
-//            PocketIDSdk.getInstance()
-//                    .initialize(this, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
-
-//            // Init contract
-//            PocketIDSdk.getInstance()
-//                    .getContractHandler()
-//                    .init(ABI, contractAddress);
-
-
-//            PocketIDSdk.getInstance().registerListener(this);
-
-
-//            getCurrentBalance();
-//            getCurrentValue();
-
-//            String encodedData;
-
-            // Encode data
-//            PocketIDSdk.getInstance()
-//                    .getContractHandler()
-//                    .encode(this, GET_HIGHEST_SCORE_METHOD);
-
-
-
-
-            // Store encoded data
-//            getStringEncoded = savedInstanceState.getString(PocketIDArgumentKey.KEY_ENCODED_DATA);
-
-//            String getStringEncoded = savedInstanceState.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
-
-            // Use encoded data to call contract
-//            PocketIDSdk.getInstance()
-//                    .getContractHandler()
-//                    .call(this, getStringEncoded);
-
-//            super.onCreate(savedInstanceState);
-//            String result = savedInstanceState.getString(PocketIDArgumentKey.KEY_DATA_STRING);
-//            String methodName = savedInstanceState.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
-
-//            getStringEncoded = savedInstanceState.getString(PocketIDArgumentKey.KEY_ENCODED_DATA);
-//            PocketIDSdk.getInstance().getContractHandler().call(this, getStringEncoded);
-
-//            callRequestSuccess(savedInstanceState);
-
-
-
-
             // set up sounds
             setVolumeControlStream(AudioManager.STREAM_MUSIC);
             soundpool = new SoundPool(20, AudioManager.STREAM_MUSIC, 0);
@@ -211,102 +122,6 @@ public class MainActivity extends AppCompatActivity implements PocketIDListener 
 //            System.out.println(PocketIDArgumentKey.KEY_FAIL_MESSAGE);
             Log.d(LOG_ID, "onCreate", e);
         }
-    }
-
-
-//    @Override
-//    public void onEvent(String s, Bundle bundle) {
-//        switch (s) {
-//            case PocketIDEventType.EVENT_LOGGED_OUT:
-//                onLoggedOut();
-//                break;
-//            case PocketIDEventType.EVENT_GET_BALANCE_SUCCESS:
-//                updateBalance(PocketIDSdk.getInstance().getBalance());
-//                break;
-//            case PocketIDEventType.EVENT_TR_ENCODE_SUCCESS:
-//                encodedDataFetched(bundle);
-//                break;
-//            case PocketIDEventType.EVENT_TR_CALL_SUCCESS:
-//                callRequestSuccess(bundle);
-//                break;
-//            case PocketIDEventType.EVENT_TR_SEND_SUCCESS:
-//                sendRequestSuccess(bundle);
-//        }
-//    }
-
-    private void getCurrentValue() {
-        PocketIDSdk.getInstance().getContractHandler().encode(this, GET_HIGHEST_SCORE_METHOD);
-    }
-
-    private void getCurrentBalance() {
-        BalanceResponse balanceResponse = PocketIDSdk.getInstance().getBalance();
-        if (balanceResponse != null) {
-            updateBalance(balanceResponse);
-        } else {
-            PocketIDSdk.getInstance().fetchBalance();
-        }
-        getCurrentValue();
-    }
-
-    @Override
-    public void onEvent(String s, Bundle bundle) {
-        switch (s) {
-            case PocketIDEventType.EVENT_LOGGED_OUT:
-                onLoggedOut();
-                break;
-            case PocketIDEventType.EVENT_GET_BALANCE_SUCCESS:
-                updateBalance(PocketIDSdk.getInstance().getBalance());
-                break;
-            case PocketIDEventType.EVENT_TR_ENCODE_SUCCESS:
-                encodedDataFetched(bundle);
-                break;
-            case PocketIDEventType.EVENT_TR_CALL_SUCCESS:
-                callRequestSuccess(bundle);
-                break;
-            case PocketIDEventType.EVENT_TR_SEND_SUCCESS:
-                sendRequestSuccess(bundle);
-        }
-    }
-
-    // TODO: update this one
-    private void sendRequestSuccess(Bundle bundle) {
-        String trHash = bundle.getString(PocketIDArgumentKey.KEY_TRANSACTION_HASH);
-        System.out.println("Update Request Submitted. Press refresh on current value.\n"
-                + "Transaction Hash: " + trHash);
-//        binding.updateValueStatus.setText("Update Request Submitted. Press refresh on current value.\n"
-//                + "Transaction Hash: " + trHash);
-    }
-
-
-    // TODO: update this one
-    private void callRequestSuccess(Bundle bundle) {
-//        updateValue(bundle.getString(PocketIDArgumentKey.KEY_DATA_STRING));
-        System.out.println(bundle.getString(PocketIDArgumentKey.KEY_DATA_STRING));
-        return;
-    }
-
-    private void encodedDataFetched(Bundle bundle) {
-        String methodName = bundle.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
-        if (methodName.equals(GET_HIGHEST_SCORE_METHOD)) {
-            getStringEncodeDataFetched(bundle);
-        }
-//        else if (methodName.equals(SET_STRING_METHOD)) {
-//            setStringEncodeDataFetched(bundle);
-//        }
-    }
-
-    private void getStringEncodeDataFetched(Bundle bundle) {
-        getStringEncoded = bundle.getString(PocketIDArgumentKey.KEY_ENCODED_DATA);
-        PocketIDSdk.getInstance().getContractHandler().call(this, getStringEncoded);
-    }
-
-    private void onLoggedOut() {
-//        setUiState();
-        return;
-    }
-    private void updateBalance(BalanceResponse balanceResponse) {
-//        bundle.balance.setText(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
-        System.out.println(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
     }
 
 

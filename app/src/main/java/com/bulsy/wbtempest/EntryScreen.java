@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Bundle;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -12,9 +13,10 @@ import android.view.VelocityTracker;
 import android.view.View;
 
 import com.serindlabs.pocketid.sdk.PocketIDSdk;
+import com.serindlabs.pocketid.sdk.base.PocketIDListener;
 import com.serindlabs.pocketid.sdk.common.User;
+import com.serindlabs.pocketid.sdk.constants.PocketIDEventType;
 import com.serindlabs.pocketid.sdk.domain.account.BalanceResponse;
-import com.serindlabs.pocketid.sdk.domain.token.TransactionsResponse;
 import com.serindlabs.pocketid.sdk.utils.PocketIDUiUtil;
 
 import java.util.ArrayList;
@@ -23,7 +25,7 @@ import java.util.List;
 /**
  * Created by ugliest on 3/10/15.
  */
-public class EntryScreen extends Screen {
+public class EntryScreen extends Screen implements PocketIDListener {
     MainActivity act;
     Login login;
     Paint p = new Paint();
@@ -41,7 +43,7 @@ public class EntryScreen extends Screen {
     float sqpts[] = null;
 
     User user = null;
-    String balanceString = "0 AION";
+    String balanceString = "loading...";
     BalanceResponse balanceRsp = null;
 
 
@@ -50,6 +52,16 @@ public class EntryScreen extends Screen {
         this.act = act;
         this.screenThumbnails = new ArrayList<Bitmap>();
         sampleBoard = new Board();
+
+        PocketIDSdk.getInstance().registerListener(this);
+
+        // Get username
+        user = PocketIDSdk.getInstance().getUser();
+        PocketIDSdk.getInstance().fetchBalance();
+
+//        PocketIDSdk.getInstance().getContractHandler().init(ABI, contractAddress);
+
+//        updateBalance();
     }
 
     @Override
@@ -184,29 +196,8 @@ public class EntryScreen extends Screen {
         c.drawText(msg, xTextEnd-p.measureText(msg), height - 40, p);
 
 
-        PocketIDSdk.getInstance()
-                .setInProd(false)
-                .initialize(act, "nh(DyBAlOlVWugK_ezmqN!qEHBiKYVF)");
-//        super.onCreate(savedInstanceState);
-        PocketIDSdk.getInstance().registerListener(act);
-
-
-        // Get username
-        user = PocketIDSdk.getInstance().getUser();
-        balanceString = "0 AION";
-        balanceRsp = null;
-
-
-        PocketIDSdk.getInstance().fetchBalance();
-        balanceRsp = PocketIDSdk.getInstance().getBalance();
-
-        PocketIDSdk.getInstance().fetchTransactions();
-        TransactionsResponse transactionsRsp = PocketIDSdk.getInstance().getTransactions();
-
-
-        System.out.println(balanceRsp);
-        balanceString = PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " aion";
-        System.out.println("balanceRsp : " + PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " AION");
+        // TODO: uncomment to enable balance
+//        PocketIDSdk.getInstance().fetchBalance();
 
 
         // user line
@@ -225,6 +216,62 @@ public class EntryScreen extends Screen {
 
 
     }
+
+
+
+    @Override
+    public void onEvent(String s, Bundle bundle) {
+        switch (s) {
+//            case PocketIDEventType.EVENT_LOGGED_OUT:
+//                onLoggedOut();
+//                break;
+            case PocketIDEventType.EVENT_GET_BALANCE_SUCCESS:
+                updateBalance(PocketIDSdk.getInstance().getBalance());
+                break;
+//            case PocketIDEventType.EVENT_TR_ENCODE_SUCCESS:
+//                encodedDataFetched(bundle);
+//                break;
+//            case PocketIDEventType.EVENT_TR_ENCODE_FAILED:
+//                System.out.println("EVENT_TR_ENCODE_FAILED");
+//                break;
+//            case PocketIDEventType.EVENT_TR_CALL_SUCCESS:
+//                callRequestSuccess(bundle);
+//                break;
+//            case PocketIDEventType.EVENT_TR_SEND_SUCCESS:
+//                sendRequestSuccess(bundle);
+        }
+    }
+
+    private void updateBalance(BalanceResponse balanceResponse) {
+//        this.act.get.balance.setText(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
+//        BalanceResponse balanceResponse = PocketIDSdk.getInstance().getBalance();
+
+        if (balanceResponse != null) {
+//            updateBalance(balanceResponse);
+            balanceString = PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " aion";
+            System.out.println("balanceRsp : " + PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
+        } else {
+            PocketIDSdk.getInstance().fetchBalance();
+        }
+    }
+
+
+//
+//    private void updateBalance() {
+////        bundle.balance.setText(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
+////        System.out.println(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
+//
+//
+//        BalanceResponse balanceResponse = PocketIDSdk.getInstance().getBalance();
+//        if (balanceResponse != null) {
+//            updateBalance(balanceResponse);
+//            balanceString = PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " aion";
+//            System.out.println("balanceRsp : " + PocketIDUiUtil.formatTokenString(balanceRsp.getDefaultWallet().getTotal()) + " AION");
+//        } else {
+//            PocketIDSdk.getInstance().fetchBalance();
+//        }
+//    }
+
 
     VelocityTracker mVelocityTracker = VelocityTracker.obtain();
     DisplayMetrics dm = new DisplayMetrics();

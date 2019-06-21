@@ -12,6 +12,8 @@ public abstract class Screen {
     // recommended to have a screen's constructor accept the main activity, so calls back to
     // game-common things there may be made in the below methods.
 
+//    protected abstract void onCreate(@Nullable Bundle savedInstanceState);
+
     /**
      * Update the screen's state.
      */

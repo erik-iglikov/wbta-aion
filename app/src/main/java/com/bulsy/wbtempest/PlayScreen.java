@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Bundle;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -12,30 +13,25 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 
+import com.serindlabs.pocketid.sdk.PocketIDSdk;
+import com.serindlabs.pocketid.sdk.base.PocketIDListener;
+import com.serindlabs.pocketid.sdk.constants.PocketIDArgumentKey;
+import com.serindlabs.pocketid.sdk.constants.PocketIDEventType;
 import com.serindlabs.pocketid.sdk.domain.account.Wallet;
-
-import org.json.JSONArray;
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-
-//import com.serindlabs.pocketid.sdk.PocketIDSdk;
-//import com.serindlabs.pocketid.sdk.base.PocketIDListener;
-//import com.serindlabs.pocketid.sdk.constants.PocketIDEventType;
-//import com.serindlabs.pocketid.sdk.domain.account.Wallet;
 
 /**
  * Represents the main screen of play for the game.
  *
  * Created by ugliest on 12/29/14.
  */
-public class PlayScreen extends Screen {
+public class PlayScreen extends Screen implements PocketIDListener {
     private static final long serialVersionUID = -1467405293079888602L;
     private static final String HISCORE_FILENAME = "wbt.hi";
     private static Random r = new Random(new java.util.Date().getTime());
@@ -113,16 +109,23 @@ public class PlayScreen extends Screen {
     private String lblGameOver;
     private String lblLevelClearBonus;
     String lblSelectStartScr;
+//    private Bundle bundle;
 
-
-    final String MASTERY_SUBNETWORK = "32";
     List<String> netIds = new ArrayList<>();
-//    AionContract contract;
-    JSONArray ABI = null;
-    final String contractAddress;
-    BigInteger contractHighestScore;
-    Wallet wallet;
 
+
+    final String ABI = "[{\"outputs\":[{\"name\":\"\",\"type\":\"int128\"}],\"constant\":true,\"payable\":false,\"inputs\":[],\"name\":\"getHighestScore\",\"type\":\"function\"},{\"outputs\":[],\"constant\":false,\"payable\":false,\"inputs\":[{\"name\":\"newHighCandidate\",\"type\":\"int128\"}],\"name\":\"setHighestScore\",\"type\":\"function\"},{\"outputs\":[],\"payable\":false,\"inputs\":[],\"name\":\"\",\"type\":\"constructor\"}]";
+
+    final String contractAddress = "0xA07735257a52b5f47740AAa14953b3DAC5eDA4fEADD2f9B3e23e8bE95FA8c045";
+
+    //    final String contractAddress = "0xA09E81C8EbF9Ac124ac1ee35F7457EC80eAfC9813ff065bF0f266dF29dC15b60";
+
+    private String contractHighestScore;
+    Wallet wallet;
+    private static final String GET_HIGHEST_SCORE_METHOD = "getHighestScore";
+    private static final String SET_STRING_METHOD = "setHighestScore";
+    private String setStringEncoded;
+    private String getStringEncoded;
 
     public <val> PlayScreen(MainActivity act) {
         this.act = act;
@@ -132,68 +135,21 @@ public class PlayScreen extends Screen {
         board = new Board();
         crawler = new Crawler();
 
+
         loadJSONFromAsset(act);
 
-
-        // Read JSON ABI
-        try {
-            ABI = new JSONArray("[\n" +
-                    "   {\n" +
-                    "      \"outputs\":[\n" +
-                    "         {\n" +
-                    "            \"name\":\"\",\n" +
-                    "            \"type\":\"uint128\"\n" +
-                    "         }\n" +
-                    "      ],\n" +
-                    "      \"constant\":true,\n" +
-                    "      \"payable\":false,\n" +
-                    "      \"inputs\":[\n" +
-                    "\n" +
-                    "      ],\n" +
-                    "      \"name\":\"getHighestScore\",\n" +
-                    "      \"type\":\"function\"\n" +
-                    "   },\n" +
-                    "   {\n" +
-                    "      \"outputs\":[\n" +
-                    "\n" +
-                    "      ],\n" +
-                    "      \"constant\":false,\n" +
-                    "      \"payable\":false,\n" +
-                    "      \"inputs\":[\n" +
-                    "         {\n" +
-                    "            \"name\":\"newHighCandidate\",\n" +
-                    "            \"type\":\"uint128\"\n" +
-                    "         }\n" +
-                    "      ],\n" +
-                    "      \"name\":\"setHighestScore\",\n" +
-                    "      \"type\":\"function\"\n" +
-                    "   },\n" +
-                    "   {\n" +
-                    "      \"outputs\":[\n" +
-                    "\n" +
-                    "      ],\n" +
-                    "      \"payable\":true,\n" +
-                    "      \"inputs\":[\n" +
-                    "\n" +
-                    "      ],\n" +
-                    "      \"name\":\"\",\n" +
-                    "      \"type\":\"constructor\"\n" +
-                    "   }\n" +
-                    "]");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        // new one (uint128)
-        contractAddress = "0xA09E81C8EbF9Ac124ac1ee35F7457EC80eAfC9813ff065bF0f266dF29dC15b60";
+        PocketIDSdk.getInstance().getContractHandler().init(ABI, contractAddress);
+        PocketIDSdk.getInstance().registerListener(this);
 
 
-        // Create contract from ABI
-//        contract = pocketAion.getMastery().createSmartContractInstance(contractAddress, ABI);
 
+
+//        Bundle bundle = act.getIntent().getExtras();
+
+//        Object c = PocketIDSdk.getInstance().getContractHandler();
 
         // Update highest score from blockchain
-        updateHighestScore();
+//        updateHighestScore(bundle);
 
 
 
@@ -207,6 +163,14 @@ public class PlayScreen extends Screen {
          Log.d(MainActivity.LOG_ID, "ReadHiScore", e);
          }
          **/
+
+//        PocketIDSdk.getInstance().getContractHandler()
+//                .encode(this.act, SET_STRING_METHOD, "10");
+
+
+        PocketIDSdk.getInstance().getContractHandler().encode(act, GET_HIGHEST_SCORE_METHOD);
+
+
 
 
         lblLevel = act.getResources().getString(R.string.level)+": ";
@@ -270,30 +234,107 @@ public class PlayScreen extends Screen {
         nextLife = EXTRA_LIFE_SCORE;
 
         // Update highest score from blockchain every time that game starts
-        updateHighestScore();
+//        updateHighestScore(this.act.getIntent().getExtras());
     }
 
 
-    /**
-     * Update the highest score from blockchain
-     */
-    public void updateHighestScore(){
-        // Call a function
-        List<Object> functionParams = new ArrayList<>();
+//    /**
+//     * Update the highest score from blockchain
+//     */
+//    public void updateHighestScore(Bundle bundle){
+//        // Call a function
+////        List<Object> functionParams = new ArrayList<>();
+//
+//
+//        getStringEncodeDataFetched(bundle);
+//    }
 
-//        try {
-//            contract.executeConstantFunction("getHighestScore", functionParams, null, null, null, null,
-//                    (PocketError pocketError, Object[] objects) -> {
-//                        for (Object obj : objects){
-//                            System.out.println("---------------" + obj);
-//                            contractHighestScore = new BigInteger(obj.toString());
-//                        }
-//                        return null;
-//                    });
-//        } catch (AionContractException e) {
-//            e.printStackTrace();
+
+    @Override
+    public void onEvent(String s, Bundle bundle) {
+        switch (s) {
+            case PocketIDEventType.EVENT_LOGGED_OUT:
+                onLoggedOut();
+                break;
+//            case PocketIDEventType.EVENT_GET_BALANCE_SUCCESS:
+//                updateBalance(PocketIDSdk.getInstance().getBalance());
+//                break;
+            case PocketIDEventType.EVENT_TR_ENCODE_SUCCESS:
+                encodedDataFetched(bundle);
+                break;
+            case PocketIDEventType.EVENT_TR_ENCODE_FAILED:
+                System.out.println("EVENT_TR_ENCODE_FAILED");
+                break;
+            case PocketIDEventType.EVENT_TR_CALL_SUCCESS:
+                callRequestSuccess(bundle);
+                break;
+            case PocketIDEventType.EVENT_TR_SEND_SUCCESS:
+                sendRequestSuccess(bundle);
+        }
+    }
+
+    // TODO: update this one
+    private void sendRequestSuccess(Bundle bundle) {
+        String trHash = bundle.getString(PocketIDArgumentKey.KEY_TRANSACTION_HASH);
+        System.out.println("Update Request Submitted. Press refresh on current value.\n"
+                + "Transaction Hash: " + trHash);
+//        binding.updateValueStatus.setText("Update Request Submitted. Press refresh on current value.\n"
+//                + "Transaction Hash: " + trHash);
+    }
+
+
+    // TODO: update this one
+    private void callRequestSuccess(Bundle bundle) {
+//        updateValue(bundle.getString(PocketIDArgumentKey.KEY_DATA_STRING));
+//        String methodName = bundle.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
+        String string = bundle.getString(PocketIDArgumentKey.KEY_DATA_STRING);
+
+        lblGlobalHigh = string;
+        System.out.println("GLOBAL KEY_DATA_STRING: " + string);
+
+
+//        if (methodName.equals(GET_HIGHEST_SCORE_METHOD)) {
+//            lblGlobalHigh = string;
+//            System.out.println("GLOBAL KEY_DATA_STRING: " + string);
+//
 //        }
+//        else if (methodName.equals(SET_STRING_METHOD)) {
+//            System.out.println("TXHASH KEY_DATA_STRING: " + string);
+//        }
+//        String string = bundle.getString(PocketIDArgumentKey.KEY_DATA_STRING);
     }
+
+    private void encodedDataFetched(Bundle bundle) {
+        String methodName = bundle.getString(PocketIDArgumentKey.KEY_METHOD_NAME);
+        if (methodName.equals(GET_HIGHEST_SCORE_METHOD)) {
+            getStringEncodeDataFetched(bundle);
+        }
+        else if (methodName.equals(SET_STRING_METHOD)) {
+            setStringEncodeDataFetched(bundle);
+        }
+    }
+
+    private void getStringEncodeDataFetched(Bundle bundle) {
+        getStringEncoded = bundle.getString(PocketIDArgumentKey.KEY_ENCODED_DATA);
+        PocketIDSdk.getInstance().getContractHandler().call(this.act, getStringEncoded);
+    }
+
+    private void setStringEncodeDataFetched(Bundle bundle) {
+        setStringEncoded = bundle.getString(PocketIDArgumentKey.KEY_ENCODED_DATA);
+        PocketIDSdk.getInstance().getContractHandler().send(this.act, setStringEncoded);
+
+//        PocketIDSdk.getInstance().getContractHandler().send(this.act, setStringEncoded, new Double("100000000"), new Double("250000"));
+    }
+
+    private void onLoggedOut() {
+//        setUiState();
+        return;
+    }
+
+//    private void updateBalance(BalanceResponse balanceResponse) {
+////        bundle.balance.setText(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
+//        System.out.println(PocketIDUiUtil.formatTokenString(balanceResponse.getDefaultWallet().getTotal()) + " AION");
+//    }
 
 
 
@@ -391,16 +432,16 @@ public class PlayScreen extends Screen {
          }
          **/
 
-        List<Object> functionParams = new ArrayList<>();
+//        List<Object> functionParams = new ArrayList<>();
 
-        BigInteger hiscoreBigInteger = new BigInteger(Integer.toString(hiscore));
+//        BigInteger hiscoreBigInteger = new BigInteger(Integer.toString(hiscore));
 
-        System.out.println("HIGHEST LOCAL: " + hiscoreBigInteger);
+        System.out.println("HIGHEST LOCAL: " + hiscore);
         System.out.println("HIGHEST GLOBAL: " + contractHighestScore);
 
         // if player's high score beats the global one - he gets reward
-        if (hiscoreBigInteger.compareTo(contractHighestScore) > 0) {
-            functionParams.add(hiscore);
+        if (Integer.valueOf(hiscore).compareTo(Integer.valueOf(contractHighestScore)) > 0) {
+//            functionParams.add(hiscore);
 //            try {
 //                contract.executeFunction("setHighestScore", wallet, functionParams, null, new BigInteger("1999999"), new BigInteger("10000000000"), new BigInteger("0"), new Function2<PocketError, String, Unit>() {
 //                    @Override
@@ -412,6 +453,9 @@ public class PlayScreen extends Screen {
 //            } catch (AionContractException e) {
 //                e.printStackTrace();
 //            }
+
+            PocketIDSdk.getInstance().getContractHandler()
+                    .encode(this.act, SET_STRING_METHOD, Integer.toString(hiscore));
 
         } else {
             System.out.println("Sorry, your score is lower than the highest. Please try again");
@@ -1004,7 +1048,7 @@ public class PlayScreen extends Screen {
     VelocityTracker mVelocityTracker = VelocityTracker.obtain();
     List<Integer> fireList = new LinkedList<Integer>();
     DisplayMetrics dm = new DisplayMetrics();
-    @Override
+//    @Override
     public boolean onTouch(MotionEvent e) {
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
